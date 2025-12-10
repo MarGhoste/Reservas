@@ -10,7 +10,7 @@ class Disponibilidad extends Model
 {
     use HasFactory;
 
-    protected $table = 'disponibilidads'; // Nombre de tabla de la migración
+    protected $table = 'disponibilidad'; // Nombre de tabla de la migración
 
     protected $fillable = [
         'barbero_id',

@@ -26,7 +26,7 @@ class HorarioBarberoResource extends Resource
     protected static ?string $navigationGroup = 'Gestión de Citas';
 
     protected static ?string $modelLabel = 'Horario de Barbero';
-    protected static ?string $pluralModelLabel = 'Horarios Recurrentes';
+    protected static ?string $pluralModelLabel = 'Horarios Personal';
 
     // Array para traducir el número del día a texto (1=Lunes)
     private static function getDiasSemanaOptions(): array
