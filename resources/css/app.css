@@ -141,3 +141,23 @@
         @apply bg-background text-foreground;
     }
 }
+
+.react-calendar__tile.cierre-total {
+    background-color: #fecaca !important; /* bg-red-200 */
+    color: #991b1b !important;           /* text-red-800 */
+    border-radius: 9999px !important;     /* rounded-full */
+}
+
+.react-calendar__tile.ausencia-parcial {
+    background-color: #fef3c7 !important; /* bg-yellow-200 */
+    color: #92400e !important;           /* text-yellow-800 */
+    border-radius: 9999px !important;     /* rounded-full */
+}
+.react-calendar {
+    width: 100% !important;
+    border: none !important;
+    font-family: inherit !important;
+}
+.react-calendar__tile:hover {
+    background-color: #f3f4f6 !important; /* bg-gray-100 */
+}

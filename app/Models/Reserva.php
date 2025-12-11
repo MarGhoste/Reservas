@@ -16,12 +16,14 @@ class Reserva extends Model
         'barbero_id',
         'servicio_id',
         'fecha_inicio',
+        'fecha_fin',
         'estado',
     ];
 
     // Casteo de atributos
     protected $casts = [
-        'fecha_inicio' => 'datetime', // Asegura que se maneje como objeto DateTime
+        'fecha_inicio' => 'datetime',
+        'fecha_fin' => 'datetime',  // Asegura que se maneje como objeto DateTime
         'estado' => 'string',
     ];
     

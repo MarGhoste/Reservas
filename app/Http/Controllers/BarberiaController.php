@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\User;
 use Inertia\Inertia;
-use App\Models\Servicio;
 use App\Models\Reserva;
+use App\Models\Servicio;
 use Illuminate\Http\Request;
+use App\Models\Disponibilidad;
 use Spatie\Permission\Models\Role;
+use Illuminate\Validation\ValidationException;
 
 
 class BarberiaController extends Controller
@@ -25,6 +27,18 @@ class BarberiaController extends Controller
 
         // Renderizar el componente de React (Servicios/Index.jsx) y pasar los datos
         return Inertia::render('Servicios/Index', [
+            'servicios' => $servicios,
+        ]);
+    }
+
+    public function serviciosShowcase()
+    {
+        $servicios = Servicio::where('activo', true)
+            ->select('id', 'nombre', 'precio', 'duracion_minutos')
+            ->get();
+
+        // **APUNTA AL COMPONENTE ESTILÍSTICO SIN ACCIÓN**
+        return Inertia::render('Servicios/Showcase', [
             'servicios' => $servicios,
         ]);
     }
@@ -175,8 +189,215 @@ class BarberiaController extends Controller
         ]);
     }
 
-    public function programacion()
+    public function store(Request $request)
     {
-        // Lógica de programación...
+        // 1. Validar los datos de entrada
+        $validated = $request->validate([
+            'servicio_id' => ['required', 'exists:servicios,id'],
+            // barbero_id puede ser null si eligió 'Cualquiera'
+            'barbero_id' => ['nullable', 'exists:users,id'],
+            'fecha_inicio' => ['required', 'date', 'after:now'],
+        ]);
+
+        // Si el usuario no está autenticado, aquí deberíamos capturar su información de contacto
+        // Asumiremos que el usuario DEBE estar autenticado para finalizar la reserva.
+        if (!auth()->check()) {
+            throw ValidationException::withMessages([
+                'auth' => 'Debes iniciar sesión para completar la reserva.',
+            ]);
+        }
+
+        $servicio = Servicio::find($validated['servicio_id']);
+        $fechaInicio = Carbon::parse($validated['fecha_inicio']);
+
+        // 2. Determinar la hora de fin (necesario para verificar disponibilidad final)
+        $fechaFin = $fechaInicio->copy()->addMinutes($servicio->duracion_minutos);
+
+        // 3. Re-verificación de la Disponibilidad Final
+        // Esto es una capa de seguridad crítica contra reservas simultáneas.
+        $barberoIdFinal = $validated['barbero_id'];
+
+        if (!$barberoIdFinal) {
+            // Si el cliente eligió 'Cualquier Barbero', necesitamos asignarle uno que esté libre
+            $barberosDisponibles = $this->findFirstAvailableBarber($fechaInicio, $fechaFin);
+
+            if ($barberosDisponibles->isEmpty()) {
+                return back()->with('error', 'Lamentablemente, el slot que seleccionaste se acaba de ocupar. Por favor, selecciona otro horario.');
+            }
+            $barberoIdFinal = $barberosDisponibles->first()->id;
+        } else {
+            // Si eligió un barbero específico, verificar que siga libre
+            if ($this->isBarberBusy($barberoIdFinal, $fechaInicio, $fechaFin)) {
+                return back()->with('error', 'El barbero seleccionado se acaba de ocupar. Por favor, selecciona otro barbero u horario.');
+            }
+        }
+
+        // 4. Crear la Reserva
+        $reserva = Reserva::create([
+            'cliente_id' => auth()->id(),
+            'barbero_id' => $barberoIdFinal,
+            'servicio_id' => $validated['servicio_id'],
+            'fecha_inicio' => $fechaInicio,
+            'fecha_fin' => $fechaFin, // Almacenamos el fin para simplificar futuras consultas
+            'estado' => 'confirmada', // O 'pendiente', según tu flujo de negocio
+        ]);
+
+        // 5. Redirigir y notificar
+
+        // NOTA: Aquí se enviaría el correo de confirmación
+
+        return redirect()->route('barberia.programacion')
+            ->with('success', '¡Tu reserva ha sido confirmada con éxito!');
+    }
+    
+    // --- MÉTODOS AUXILIARES CRÍTICOS ---
+
+    /**
+     * Verifica si un barbero específico está ocupado en un rango de tiempo.
+     */
+    private function isBarberBusy(int $barberoId, Carbon $inicio, Carbon $fin): bool
+    {
+        return Reserva::where('barbero_id', $barberoId)
+            ->whereIn('estado', ['pendiente', 'confirmada'])
+            // La reserva choca si empieza antes de que nuestra cita termine Y termina después de que nuestra cita empiece
+            ->where(function ($query) use ($inicio, $fin) {
+                $query->where('fecha_inicio', '<', $fin)
+                    ->where('fecha_fin', '>', $inicio);
+            })
+            ->exists();
+    }
+
+    /**
+     * Encuentra el primer barbero disponible en un slot (para la opción 'Cualquiera').
+     */
+    private function findFirstAvailableBarber(Carbon $inicio, Carbon $fin)
+    {
+        // 1. Obtener todos los IDs de barberos activos
+        $barberoIds = User::role('barbero')->pluck('id');
+
+        if ($barberoIds->isEmpty()) {
+            return collect(); // No hay barberos
+        }
+
+        // 2. Encontrar barberos que están ocupados en el slot
+        $barberosOcupadosIds = Reserva::whereIn('barbero_id', $barberoIds)
+            ->whereIn('estado', ['pendiente', 'confirmada'])
+            ->where(function ($query) use ($inicio, $fin) {
+                $query->where('fecha_inicio', '<', $fin)
+                    ->where('fecha_fin', '>', $inicio);
+            })
+            ->pluck('barbero_id');
+
+        // 3. Devolver el primer barbero cuyo ID no esté en la lista de ocupados
+        $barberosDisponibles = User::whereIn('id', $barberoIds)
+            ->whereNotIn('id', $barberosOcupadosIds)
+            ->get();
+
+        return $barberosDisponibles;
+    }
+
+    public function cancelarReserva(Reserva $reserva)
+    {
+        // 1. Verificar Autenticación y Autorización
+        if ($reserva->cliente_id !== auth()->id()) {
+            return back()->with('error', 'No tienes permiso para cancelar esta cita.');
+        }
+
+        // 2. Regla de Negocio: Verificar Antelación (Ejemplo: Mínimo 2 horas antes)
+        $horaLimite = Carbon::parse($reserva->fecha_inicio)->subHours(2);
+
+        if (Carbon::now()->greaterThanOrEqualTo($horaLimite)) {
+            return back()->with('error', 'La cancelación debe hacerse con al menos 2 horas de antelación.');
+        }
+
+        // 3. Verificar Estado Actual
+        if ($reserva->estado === 'cancelada') {
+            return back()->with('warning', 'Esta cita ya estaba marcada como cancelada.');
+        }
+
+        // 4. Ejecutar la Cancelación
+        $reserva->update([
+            'estado' => 'cancelada',
+        ]);
+
+        // NOTA: Aquí se dispararía un evento para notificar al barbero.
+
+        return redirect()->route('barberia.programacion')
+            ->with('success', 'La cita ha sido cancelada con éxito.');
+    }
+
+    public function programacion(Request $request)
+    {
+        // 1. Obtener el ID del usuario autenticado
+        $userId = auth()->id();
+
+        // 2. Cargar las reservas del cliente
+        // Utilizamos with() para cargar las relaciones 'barbero' y 'servicio' y evitar el N+1
+        $reservas = Reserva::where('cliente_id', $userId)
+            ->with(['barbero:id,name', 'servicio:id,nombre,precio'])
+            ->orderBy('fecha_inicio', 'desc') // Mostrar las más recientes o futuras primero
+            ->get();
+
+        // 3. Mapear los datos para Inertia (simplificar la estructura y tipos)
+        $reservasMapeadas = $reservas->map(function ($reserva) {
+            return [
+                'id' => $reserva->id,
+                'fecha_inicio' => Carbon::parse($reserva->fecha_inicio)->format('Y-m-d H:i'),
+                'fecha_fin' => Carbon::parse($reserva->fecha_fin)->format('Y-m-d H:i'),
+                'estado' => $reserva->estado,
+                'barbero' => $reserva->barbero->name,
+                'servicio' => $reserva->servicio->nombre,
+                'precio' => $reserva->servicio->precio,
+            ];
+        });
+
+        // 4. Renderizar la vista
+        return Inertia::render('Programacion/Index', [
+            'reservas' => $reservasMapeadas,
+        ]);
+    }
+
+    public function calendarioAusencias()
+    {
+        // 1. Obtener todas las indisponibilidades futuras y recientes
+        $indisponibilidades = Disponibilidad::where('fecha', '>=', Carbon::now()->subDays(30))
+            ->with('barbero:id,name') // Asumimos que la relación 'barbero' existe en el modelo Disponibilidad
+            ->orderBy('fecha', 'asc')
+            ->get();
+
+        // 2. Contar el número total de barberos activos para determinar el 'cierre total'
+        // Asumimos que los barberos tienen el rol 'barbero'
+        $totalBarberos = User::role('barbero')->count();
+
+        // 3. Agrupar por fecha y mapear para el frontend
+        $diasIndisponibles = $indisponibilidades->groupBy(function ($item) {
+            return Carbon::parse($item->fecha)->format('Y-m-d');
+        })->map(function ($ausenciasPorDia, $fecha) use ($totalBarberos) {
+
+            $barberosAusentes = $ausenciasPorDia->pluck('barbero.name')->filter()->implode(', ');
+            $numAusentes = $ausenciasPorDia->unique('barbero_id')->count();
+
+            $isCierreTotal = $numAusentes >= $totalBarberos;
+
+            if ($isCierreTotal) {
+                $title = 'CERRADO: Todos los barberos ausentes';
+                $type = 'cierre_total';
+            } else {
+                $title = "Ausencias Parciales: {$barberosAusentes}";
+                $type = 'parcial';
+            }
+
+            return [
+                'date' => $fecha,
+                'title' => $title,
+                'type' => $type,
+                'barberos' => $barberosAusentes,
+            ];
+        })->values(); // Resetear las keys para Inertia/React
+
+        // 4. Renderizar la vista
+        return Inertia::render('Calendario/Ausencias', [
+            'diasIndisponibles' => $diasIndisponibles,
+        ]);
     }
 }
