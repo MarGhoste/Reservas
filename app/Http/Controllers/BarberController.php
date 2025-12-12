@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Reserva;
-use App\Models\User; // Asumimos que el cliente también es un User
 use Carbon\Carbon;
 use Inertia\Inertia;
+use App\Models\Reserva;
+use App\Models\Disponibilidad;
+use App\Models\User; // Asumimos que el cliente también es un User
+use Illuminate\Http\Request;
 
 class BarberController extends Controller
 {
@@ -108,5 +110,78 @@ class BarberController extends Controller
         return Inertia::render('Barbero/Historial', [
             'historialCitas' => $historialCitas,
         ]);
+    }
+
+    public function disponibilidad()
+    {
+        $barberId = auth()->id();
+        $today = Carbon::today();
+
+        // Obtener las ausencias futuras de este barbero, ordenadas por fecha
+        $ausencias = Disponibilidad::where('barbero_id', $barberId)
+            ->where('fecha', '>=', $today)
+            ->orderBy('fecha', 'asc')
+            ->get()
+            ->map(function ($ausencia) {
+                return [
+                    'id' => $ausencia->id,
+                    // Muestra la fecha en formato legible
+                    'fecha' => Carbon::parse($ausencia->fecha)->isoFormat('dddd, D [de] MMMM YYYY'),
+                    'motivo' => $ausencia->motivo,
+                    'fecha_raw' => $ausencia->fecha,
+                ];
+            });
+
+        return Inertia::render('Barbero/Disponibilidad', [
+            'misAusencias' => $ausencias,
+        ]);
+    }
+
+    /**
+     * Almacena una nueva ausencia personal.
+     */
+    public function storeDisponibilidad(Request $request)
+    {
+        $barberId = auth()->id();
+
+        $validated = $request->validate([
+            // La fecha debe ser hoy o en el futuro
+            'fecha' => ['required', 'date', 'after_or_equal:today'],
+            'motivo' => ['required', 'string', 'max:255'],
+        ]);
+
+        // Prevención de duplicados para el mismo día
+        $exists = Disponibilidad::where('barbero_id', $barberId)
+            ->where('fecha', $validated['fecha'])
+            ->exists();
+
+        if ($exists) {
+            return back()->withErrors(['fecha' => 'Ya existe una indisponibilidad registrada para este día.']);
+        }
+
+        Disponibilidad::create([
+            'barbero_id' => $barberId,
+            'fecha' => $validated['fecha'],
+            'motivo' => $validated['motivo'],
+        ]);
+
+        return redirect()->route('barbero.disponibilidad')
+            ->with('success', 'Día no disponible registrado exitosamente.');
+    }
+
+    /**
+     * Elimina una ausencia personal.
+     */
+    public function destroyDisponibilidad(Disponibilidad $ausencia)
+    {
+        // 🚨 CONTROL DE SEGURIDAD: Solo permite eliminar ausencias propias
+        if ($ausencia->barbero_id !== auth()->id()) {
+            abort(403, 'No estás autorizado para eliminar esta ausencia.');
+        }
+
+        $ausencia->delete();
+
+        return redirect()->route('barbero.disponibilidad')
+            ->with('success', 'Ausencia eliminada correctamente.');
     }
 }

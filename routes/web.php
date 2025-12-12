@@ -64,8 +64,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Aquí irán las rutas de historial y disponibilidad
         Route::get('historial', [BarberController::class, 'historial'])->name('barbero.historial');
-        Route::get('disponibilidad', [BarberController::class, 'disponibilidad'])->name('barbero.disponibilidad');
         Route::put('/reservas/{reserva}/completar', [BarberController::class, 'marcarCompletada'])->name('reservas.completar');
+        Route::get('disponibilidad', [BarberController::class, 'disponibilidad'])->name('barbero.disponibilidad');
+        Route::post('disponibilidad', [BarberController::class, 'storeDisponibilidad'])->name('barbero.disponibilidad.store');
+        Route::delete('disponibilidad/{ausencia}', [BarberController::class, 'destroyDisponibilidad'])->name('barbero.disponibilidad.destroy');
     });
 });
 
