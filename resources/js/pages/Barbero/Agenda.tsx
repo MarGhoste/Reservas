@@ -1,7 +1,7 @@
 // resources/js/Pages/Barbero/Agenda.tsx
 
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 
 // --- INTERFACES ACTUALIZADAS ---
@@ -28,8 +28,14 @@ export default function Agenda({ auth, reservasHoy, fechaActual }: AgendaProps) 
     
     // Función de ejemplo para un futuro botón de acción
     const handleComplete = (id: number) => {
-        alert(`Implementar lógica para marcar la cita ${id} como completada.`);
-        // Aquí usarías Inertia.post o una llamada API
+        // Pedimos confirmación al usuario
+        if (window.confirm('¿Estás seguro de que quieres marcar esta cita como completada?')) {
+            // Usamos el router de Inertia para enviar la petición PUT
+            router.put(route('reservas.completar', id), {}, {
+                preserveScroll: true, // Evita que la página salte al inicio
+                // onSuccess: () => alert('¡Cita completada!'), // Opcional: para mostrar una alerta
+            });
+        }
     };
 
     return (
@@ -61,7 +67,7 @@ export default function Agenda({ auth, reservasHoy, fechaActual }: AgendaProps) 
                                                     - {reserva.fecha_fin_hora} ({reserva.duration} min)
                                                 </span>
                                             </div>
-                                            <span className={`px-3 py-1 text-xs font-semibold rounded-full uppercase ${reserva.status === 'confirmada' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                            <span className={`px-3 py-1 text-xs font-semibold rounded-full uppercase ${reserva.estado === 'confirmada' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                                                 {reserva.estado}
                                             </span>
                                         </div>
