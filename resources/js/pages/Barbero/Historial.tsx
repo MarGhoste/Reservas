@@ -1,11 +1,24 @@
-import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import Pagination from '@/components/Pagination';
+import { Badge } from '@/components/ui/badge';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-// Asegúrate de que tienes un componente o función para formatear moneda
-// Si no tienes formatCurrency, puedes usar `cita.servicio_precio.toFixed(2)`
-import { formatCurrency } from '@/Utils/formatters'; 
-// Asumimos que tienes un componente de paginación
-import Pagination from '@/Components/Pagination'; 
+import { formatCurrency } from '@/Utils/formatters';
+import { Head } from '@inertiajs/react';
+import { Calendar, Clock, History, User } from 'lucide-react';
 
 // --- INTERFACES ---
 interface HistorialCita {
@@ -29,91 +42,133 @@ interface HistorialProps {
 }
 
 export default function Historial({ auth, historialCitas }: HistorialProps) {
+    // Función auxiliar para renderizar el badge de estado
+    const renderStatusBadge = (estado: string) => {
+        const label =
+            estado.charAt(0).toUpperCase() + estado.slice(1).replace('_', ' ');
 
-    // Función auxiliar para colorear el estado de la cita
-    const getStatusClass = (estado: string) => {
         switch (estado) {
-            case 'completada': return 'bg-green-100 text-green-800';
-            case 'cancelada': return 'bg-red-100 text-red-800';
-            case 'no_show': return 'bg-yellow-100 text-yellow-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'completada':
+                return (
+                    <Badge className="bg-emerald-600 hover:bg-emerald-700">
+                        {label}
+                    </Badge>
+                );
+            case 'cancelada':
+                return <Badge variant="destructive">{label}</Badge>;
+            case 'no_show':
+                return (
+                    <Badge
+                        variant="secondary"
+                        className="bg-amber-100 text-amber-800 hover:bg-amber-200"
+                    >
+                        {label}
+                    </Badge>
+                );
+            default:
+                return <Badge variant="outline">{label}</Badge>;
         }
     };
 
     return (
-        <AppLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Mi Historial de Servicios</h2>}>
+        <AppLayout
+            user={auth.user}
+            header={
+                <h2 className="text-xl leading-tight font-semibold">
+                    Mi Historial de Servicios
+                </h2>
+            }
+        >
             <Head title="Historial Barbero" />
 
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 md:p-10">
-                        
-                        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-                            Historial de Citas Pasadas
-                        </h1>
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <History className="h-5 w-5" />
+                                Historial de Citas Pasadas
+                            </CardTitle>
+                            <CardDescription>
+                                Consulta el registro de todos tus servicios
+                                realizados.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="rounded-md border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Fecha y Hora</TableHead>
+                                            <TableHead>Cliente</TableHead>
+                                            <TableHead>Servicio</TableHead>
+                                            <TableHead>Precio</TableHead>
+                                            <TableHead>Estado</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {historialCitas.data.length > 0 ? (
+                                            historialCitas.data.map((cita) => (
+                                                <TableRow key={cita.id}>
+                                                    <TableCell className="font-medium">
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                                                            {cita.fecha_hora}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                            <User className="h-4 w-4 text-muted-foreground" />
+                                                            {cita.cliente_name}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium">
+                                                                {
+                                                                    cita.servicio_name
+                                                                }
+                                                            </span>
+                                                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                                <Clock className="h-3 w-3" />{' '}
+                                                                {cita.duration}{' '}
+                                                                min
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {formatCurrency(
+                                                            cita.servicio_precio,
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {renderStatusBadge(
+                                                            cita.estado,
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell
+                                                    colSpan={5}
+                                                    className="h-24 text-center text-muted-foreground"
+                                                >
+                                                    No hay historial de citas
+                                                    completadas.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
 
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Fecha y Hora
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Cliente
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Servicio (Duración)
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Precio
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Estado
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {historialCitas.data.length > 0 ? (
-                                        historialCitas.data.map((cita) => (
-                                            <tr key={cita.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    {cita.fecha_hora}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {cita.cliente_name}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {cita.servicio_name} ({cita.duration} min)
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-700">
-                                                    {/* Asegúrate de que formatCurrency esté disponible o usa toFixed(2) */}
-                                                    {/* Ejemplo alternativo: `$${cita.servicio_precio.toFixed(2)}` */}
-                                                    {formatCurrency(cita.servicio_precio)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(cita.estado)}`}>
-                                                        {cita.estado.charAt(0).toUpperCase() + cita.estado.slice(1).replace('_', ' ')}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                                                No hay historial de citas completadas.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Paginación */}
-                        <div className="mt-8">
-                            <Pagination links={historialCitas.links} />
-                        </div>
-                    </div>
+                            {/* Paginación */}
+                            <div className="mt-6">
+                                <Pagination links={historialCitas.links} />
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </AppLayout>
