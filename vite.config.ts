@@ -24,4 +24,11 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
     },
+resolve: {
+        alias: {
+            // Esta línea es la clave para que shadcn funcione en Laravel
+            '@': path.resolve(__dirname, './resources/js'),
+        },
+    },
+    
 });
