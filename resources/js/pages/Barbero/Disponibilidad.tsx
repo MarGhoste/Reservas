@@ -1,14 +1,32 @@
 // resources/js/Pages/Barbero/Disponibilidad.tsx
 
-import React from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-// Asumo que tienes componentes básicos como estos en tu proyecto:
-import InputLabel from '@/Components/InputLabel';
-import TextInput from '@/Components/TextInput';
-import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton'; 
-import DangerButton from '@/Components/DangerButton'; 
+import { Head, router, useForm } from '@inertiajs/react';
+import React from 'react';
+// Shadcn UI Components
+import InputError from '@/components/InputError'; // Keep this for now
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CalendarOff, CalendarPlus, Trash2 } from 'lucide-react';
 
 // --- INTERFACES ---
 interface Ausencia {
@@ -23,116 +41,191 @@ interface DisponibilidadProps {
     misAusencias: Ausencia[];
 }
 
-export default function Disponibilidad({ auth, misAusencias }: DisponibilidadProps) {
-    
+export default function Disponibilidad({
+    auth,
+    misAusencias,
+}: DisponibilidadProps) {
     // Configuración del formulario con Inertia
     const { data, setData, post, processing, errors, reset } = useForm({
         fecha: '',
         motivo: '',
     });
 
-    // Manejar el envío del formulario (Crear nueva ausencia)
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Llama a la ruta POST para almacenar el día no disponible
         post(route('barbero.disponibilidad.store'), {
-            onSuccess: () => reset('fecha', 'motivo'), // Limpia el formulario al éxito
+            onSuccess: () => reset('fecha', 'motivo'),
+            preserveScroll: true,
         });
     };
 
-    // Manejar la eliminación de una ausencia
     const handleDelete = (id: number) => {
-        if (confirm('¿Estás seguro de que quieres eliminar esta ausencia? El día volverá a estar disponible para reservas.')) {
-            // Llama a la ruta DELETE
-            router.delete(route('barbero.disponibilidad.destroy', id), {
-                preserveScroll: true, // Mantiene la posición del scroll
-            });
-        }
+        router.delete(route('barbero.disponibilidad.destroy', id), {
+            preserveScroll: true,
+        });
     };
 
     return (
-        <AppLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Mi Disponibilidad Personal</h2>}>
+        <AppLayout
+            user={auth.user}
+            header={
+                <h2 className="text-xl font-semibold">
+                    Mi Disponibilidad Personal
+                </h2>
+            }
+        >
             <Head title="Disponibilidad Barbero" />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white shadow-xl sm:rounded-lg">
-                        
-                        {/* SECCIÓN 1: Formulario para Añadir Ausencia */}
-                        <div className="p-6 md:p-10 border-b border-gray-200">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-3">
-                                🗓️ Bloquear un Día Personal (Ausencia)
-                            </h2>
-                            <form onSubmit={handleSubmit} className="space-y-6 max-w-lg">
-                                <div>
-                                    <InputLabel htmlFor="fecha" value="Fecha de Ausencia" />
-                                    <TextInput
-                                        id="fecha"
-                                        type="date"
-                                        name="fecha"
-                                        value={data.fecha}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) => setData('fecha', e.target.value)}
-                                        required
-                                        min={new Date().toISOString().split('T')[0]} // No permitir fechas pasadas
-                                    />
-                                    <InputError message={errors.fecha} className="mt-2" />
-                                </div>
-                                
-                                <div>
-                                    <InputLabel htmlFor="motivo" value="Motivo de la Ausencia (Ej: Cita médica, día libre)" />
-                                    <TextInput
-                                        id="motivo"
-                                        type="text"
-                                        name="motivo"
-                                        value={data.motivo}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) => setData('motivo', e.target.value)}
-                                        required
-                                    />
-                                    <InputError message={errors.motivo} className="mt-2" />
-                                </div>
+            <div className="grid gap-8 md:grid-cols-2">
+                {/* SECCIÓN 1: Formulario para Añadir Ausencia */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <CalendarPlus className="size-5" />
+                            Bloquear un Día Personal
+                        </CardTitle>
+                        <CardDescription>
+                            Añade una fecha en la que no estarás disponible. Los
+                            clientes no podrán reservar en este día.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="fecha">Fecha de Ausencia</Label>
+                                <Input
+                                    id="fecha"
+                                    type="date"
+                                    name="fecha"
+                                    value={data.fecha}
+                                    onChange={(e) =>
+                                        setData('fecha', e.target.value)
+                                    }
+                                    required
+                                    min={new Date().toISOString().split('T')[0]}
+                                />
+                                <InputError message={errors.fecha} />
+                            </div>
 
-                                <div className="flex items-center justify-end">
-                                    <PrimaryButton processing={processing}>
-                                        Bloquear Día
-                                    </PrimaryButton>
-                                </div>
-                            </form>
-                        </div>
-                        
-                        {/* SECCIÓN 2: Lista de Ausencias Futuras */}
-                        <div className="p-6 md:p-10">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-3">
-                                🚫 Mis Días Bloqueados (Futuros)
-                            </h2>
-                            
-                            {misAusencias.length > 0 ? (
-                                <ul className="space-y-3">
-                                    {misAusencias.map((ausencia) => (
-                                        <li key={ausencia.id} className="flex justify-between items-center p-4 bg-red-50 border border-red-200 rounded-lg">
-                                            <div>
-                                                <p className="font-semibold text-gray-800">{ausencia.fecha}</p>
-                                                <p className="text-sm text-gray-600 italic">Motivo: {ausencia.motivo}</p>
-                                            </div>
-                                            <DangerButton
-                                                onClick={() => handleDelete(ausencia.id)}
-                                                className="h-9"
-                                            >
-                                                Eliminar
-                                            </DangerButton>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="text-gray-500 italic text-center p-4 bg-gray-50 rounded-lg">
-                                    ✨ ¡Genial! No tienes días de ausencia registrados. Tu agenda está completamente abierta.
+                            <div className="space-y-2">
+                                <Label htmlFor="motivo">
+                                    Motivo de la Ausencia
+                                </Label>
+                                <Input
+                                    id="motivo"
+                                    type="text"
+                                    name="motivo"
+                                    value={data.motivo}
+                                    placeholder="Ej: Cita médica, día libre..."
+                                    onChange={(e) =>
+                                        setData('motivo', e.target.value)
+                                    }
+                                    required
+                                />
+                                <InputError message={errors.motivo} />
+                            </div>
+
+                            <div className="flex items-center justify-end">
+                                <Button type="submit" disabled={processing}>
+                                    {processing
+                                        ? 'Bloqueando...'
+                                        : 'Bloquear Día'}
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                {/* SECCIÓN 2: Lista de Ausencias Futuras */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <CalendarOff className="size-5" />
+                            Mis Días Bloqueados
+                        </CardTitle>
+                        <CardDescription>
+                            Estos son los días que has marcado como no
+                            disponibles.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {misAusencias.length > 0 ? (
+                            <ul className="space-y-3">
+                                {misAusencias.map((ausencia) => (
+                                    <li
+                                        key={ausencia.id}
+                                        className="flex items-center justify-between rounded-lg border bg-secondary/30 p-3"
+                                    >
+                                        <div>
+                                            <p className="font-semibold text-secondary-foreground">
+                                                {ausencia.fecha}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {ausencia.motivo}
+                                            </p>
+                                        </div>
+
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>
+                                                        ¿Estás seguro?
+                                                    </AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Esta acción no se puede
+                                                        deshacer. Se eliminará
+                                                        la ausencia para el día{' '}
+                                                        <span className="font-bold">
+                                                            {ausencia.fecha}
+                                                        </span>{' '}
+                                                        y volverá a estar
+                                                        disponible para
+                                                        reservas.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>
+                                                        Cancelar
+                                                    </AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                ausencia.id,
+                                                            )
+                                                        }
+                                                        // Prueba eliminando 'bg-destructive' y usando la clase de botón directamente
+                                                        className="bg-red-600 text-white hover:bg-red-700"
+                                                    >
+                                                        Sí, eliminar
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <div className="rounded-lg border-2 border-dashed p-8 text-center text-muted-foreground">
+                                <p className="font-medium">
+                                    ¡Genial! No tienes días de ausencia.
                                 </p>
-                            )}
-                        </div>
-
-                    </div>
-                </div>
+                                <p className="text-sm">
+                                    Tu agenda está completamente abierta para
+                                    reservas.
+                                </p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
         </AppLayout>
     );
