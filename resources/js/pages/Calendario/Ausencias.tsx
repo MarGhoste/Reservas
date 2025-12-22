@@ -1,9 +1,19 @@
-// resources/js/Pages/Calendario/Ausencias.tsx
-
-import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import Calendar from 'react-calendar'; // Librería de calendario
+import { Head } from '@inertiajs/react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { useMemo, useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // --- INTERFACES (Se mantienen igual) ---
 interface DiaIndisponible {
@@ -17,121 +27,219 @@ interface AusenciasProps {
     diasIndisponibles: DiaIndisponible[];
 }
 
-// Clase base para colorear según el tipo de ausencia
-const tileClassName = (type: string | undefined) => {
-    if (!type) return null;
-    if (type === 'cierre_total') {
-        // Rojo: Cierre total
-        return 'bg-red-200 hover:bg-red-300 !rounded-full'; 
-    }
-    if (type === 'parcial') {
-        // Amarillo: Ausencia parcial
-        return 'bg-yellow-200 hover:bg-yellow-300 !rounded-full'; 
-    }
-    return null;
-};
-
-export default function AusenciasIndex({ auth, diasIndisponibles }: AusenciasProps) {
-    const [calendarDate, setCalendarDate] = useState(new Date());
+export default function AusenciasIndex({
+    auth,
+    diasIndisponibles,
+}: AusenciasProps) {
+    const [date, setDate] = useState<Date | undefined>(new Date());
 
     // Crear un mapa de fechas para acceso rápido (YYYY-MM-DD -> {type, title})
-    const absenceMap = diasIndisponibles.reduce((acc, item) => {
-        acc[item.date] = item;
-        return acc;
-    }, {} as Record<string, DiaIndisponible>);
+    const absenceMap = useMemo(() => {
+        return diasIndisponibles.reduce(
+            (acc, item) => {
+                acc[item.date] = item;
+                return acc;
+            },
+            {} as Record<string, DiaIndisponible>,
+        );
+    }, [diasIndisponibles]);
 
-    // Función que la librería de calendario usará para dar estilo a cada día
-    const tileContent = ({ date, view }: { date: Date, view: string }) => {
-        if (view === 'month') {
-            const dateString = date.toISOString().split('T')[0];
-            const absence = absenceMap[dateString];
-
-            if (absence) {
-                // Devolvemos un elemento que aplica la clase CSS y un tooltip
-                return (
-                    <div className={`tile-absence-marker ${tileClassName(absence.type)} absolute inset-0 rounded-full flex items-center justify-center`} 
-                         title={absence.title}>
-                        <div className="w-2 h-2 rounded-full bg-black opacity-70"></div> {/* Un pequeño punto o marca */}
-                    </div>
-                );
-            }
-        }
-        return null;
-    };
-    
-    // Función para aplicar clases CSS a cada día (para colorear el fondo)
-   const setDayClassName = ({ date, view }: { date: Date, view: string }) => {
-    if (view === 'month') {
-        const dateString = date.toISOString().split('T')[0];
-        const absence = absenceMap[dateString];
-        
-        if (!absence) return null;
-
-        // Devuelve la clase CSS estática que definimos en app.css
-        return absence.type === 'cierre_total' ? 'cierre-total' : 'ausencia-parcial';
-    }
-    return null;
-};
-
-
-    const getColorClass = (type: string) => {
-        return type === 'cierre_total' 
-            ? 'bg-red-50 border-red-200 text-red-800' 
-            : 'bg-yellow-50 border-yellow-200 text-yellow-800';
+    // Helper para obtener la ausencia de una fecha
+    const getAbsence = (d: Date) => {
+        const dateString = format(d, 'yyyy-MM-dd');
+        return absenceMap[dateString];
     };
 
+    // Modificadores para colorear el calendario
+    const modifiers = {
+        cierre_total: (d: Date) => getAbsence(d)?.type === 'cierre_total',
+        parcial: (d: Date) => getAbsence(d)?.type === 'parcial',
+    };
+
+    const modifiersClassNames = {
+        cierre_total:
+            'bg-red-500 text-white hover:bg-red-600 rounded-md opacity-100',
+        parcial:
+            'bg-yellow-400 text-black hover:bg-yellow-500 rounded-md opacity-100',
+    };
+
+    const selectedAbsence = date ? getAbsence(date) : null;
 
     return (
-        <AppLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Calendario de Días No Hábiles</h2>}>
+        <AppLayout
+            user={auth.user}
+            header={
+                <h2 className="text-xl leading-tight font-semibold text-gray-800">
+                    Calendario de Días No Hábiles
+                </h2>
+            }
+        >
             <Head title="Ausencias" />
 
             <div className="py-12">
-                <div className="max-w-4xl mx-auto sm:px-6 lg:px-8 bg-white p-8 shadow-xl rounded-lg">
-                    
-                    <h1 className="text-3xl font-bold text-gray-900 mb-6">
-                        Disponibilidad del Personal
-                    </h1>
-                    <p className="text-gray-600 mb-8">
-                        Los días en **rojo** indican cierre total. Los días en **amarillo** indican ausencia parcial de barberos.
-                    </p>
+                <div className="mx-auto max-w-6xl sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+                        {/* Columna Izquierda: Calendario */}
+                        <Card className="h-fit md:col-span-5 lg:col-span-4">
+                            <CardHeader>
+                                <CardTitle>Calendario</CardTitle>
+                                <CardDescription>
+                                    Rojo: Cierre total. Amarillo: Parcial.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex justify-center p-4">
+                                <Calendar
+                                    mode="single"
+                                    selected={date}
+                                    onSelect={setDate}
+                                    locale={es}
+                                    modifiers={modifiers}
+                                    modifiersClassNames={modifiersClassNames}
+                                    className="rounded-md border shadow-sm"
+                                />
+                            </CardContent>
+                        </Card>
 
-                    {/* --- CONTENEDOR DEL CALENDARIO (Implementación de react-calendar) --- */}
-                    <div className="flex justify-center mb-10">
-                        <div className="w-full">
-                            <Calendar
-                                onChange={setCalendarDate}
-                                value={calendarDate}
-                                locale="es-ES"
-                                // Aquí se aplican las clases CSS para el marcado
-                                tileClassName={setDayClassName} 
-                            />
-                        </div>
-                    </div>
-                    
-                    
-                    {/* --- LEYENDA ACTUALIZADA --- */}
-                    <h3 className="text-xl font-semibold mb-3">Próximas Ausencias</h3>
-                    <div className="space-y-2 max-h-64 overflow-y-auto p-2 border rounded-lg">
-                        {diasIndisponibles.length > 0 ? (
-                            diasIndisponibles.map(dia => (
-                                <div key={dia.date} className={`p-3 rounded-md border ${getColorClass(dia.type)}`}>
-                                    <div className="flex justify-between items-center">
-                                        <span className="font-bold">
-                                            {new Date(dia.date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                                        </span>
-                                        <span className="px-2 py-1 text-xs rounded-full font-semibold bg-white shadow-sm">
-                                            {dia.type === 'cierre_total' ? 'CERRADO TOTAL' : 'AUSENCIA PARCIAL'}
-                                        </span>
-                                    </div>
-                                    <p className="mt-1 text-sm">{dia.title}</p>
-                                    {dia.type === 'parcial' && (
-                                        <p className="mt-1 text-xs text-gray-700">Barberos ausentes: {dia.barberos}</p>
+                        {/* Columna Derecha: Detalles y Lista */}
+                        <div className="space-y-6 md:col-span-7 lg:col-span-8">
+                            {/* Detalle del día seleccionado */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>
+                                        {date
+                                            ? format(
+                                                  date,
+                                                  "EEEE, d 'de' MMMM 'de' yyyy",
+                                                  { locale: es },
+                                              )
+                                            : 'Selecciona una fecha'}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Detalles de disponibilidad
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {selectedAbsence ? (
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <Badge
+                                                    variant={
+                                                        selectedAbsence.type ===
+                                                        'cierre_total'
+                                                            ? 'destructive'
+                                                            : 'secondary'
+                                                    }
+                                                    className={
+                                                        selectedAbsence.type ===
+                                                        'parcial'
+                                                            ? 'bg-yellow-400 text-black hover:bg-yellow-500'
+                                                            : ''
+                                                    }
+                                                >
+                                                    {selectedAbsence.type ===
+                                                    'cierre_total'
+                                                        ? 'Cierre Total'
+                                                        : 'Ausencia Parcial'}
+                                                </Badge>
+                                                <span className="text-lg font-semibold">
+                                                    {selectedAbsence.title}
+                                                </span>
+                                            </div>
+                                            {selectedAbsence.type ===
+                                                'parcial' && (
+                                                <p className="text-sm text-muted-foreground">
+                                                    Barberos ausentes:{' '}
+                                                    <span className="font-medium text-foreground">
+                                                        {
+                                                            selectedAbsence.barberos
+                                                        }
+                                                    </span>
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground">
+                                            No hay ausencias registradas para
+                                            este día.
+                                        </p>
                                     )}
-                                </div>
-                            ))
-                        ) : (
-                            <p className="p-3 text-center text-gray-500">No hay cierres ni ausencias futuras registradas.</p>
-                        )}
+                                </CardContent>
+                            </Card>
+
+                            {/* Lista de próximas ausencias */}
+                            <Card className="flex h-[400px] flex-col">
+                                <CardHeader>
+                                    <CardTitle>Próximas Ausencias</CardTitle>
+                                    <CardDescription>
+                                        Listado completo de días no hábiles
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="flex-1 overflow-hidden p-0">
+                                    <ScrollArea className="h-full px-6 py-2">
+                                        <div className="space-y-4 pb-4">
+                                            {diasIndisponibles.length > 0 ? (
+                                                diasIndisponibles.map((dia) => (
+                                                    <div
+                                                        key={dia.date}
+                                                        className="flex flex-col justify-between gap-2 border-b pb-3 last:border-0 last:pb-0 sm:flex-row sm:items-center"
+                                                    >
+                                                        <div>
+                                                            <p className="font-medium">
+                                                                {format(
+                                                                    new Date(
+                                                                        dia.date +
+                                                                            'T00:00:00',
+                                                                    ),
+                                                                    "d 'de' MMMM, yyyy",
+                                                                    {
+                                                                        locale: es,
+                                                                    },
+                                                                )}
+                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {dia.title}
+                                                            </p>
+                                                            {dia.type ===
+                                                                'parcial' && (
+                                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                                    Ausentes:{' '}
+                                                                    {
+                                                                        dia.barberos
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <Badge
+                                                            variant={
+                                                                dia.type ===
+                                                                'cierre_total'
+                                                                    ? 'destructive'
+                                                                    : 'outline'
+                                                            }
+                                                            className={
+                                                                dia.type ===
+                                                                'parcial'
+                                                                    ? 'border-yellow-300 bg-yellow-100 text-yellow-800'
+                                                                    : ''
+                                                            }
+                                                        >
+                                                            {dia.type ===
+                                                            'cierre_total'
+                                                                ? 'Cerrado'
+                                                                : 'Parcial'}
+                                                        </Badge>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="py-4 text-center text-muted-foreground">
+                                                    No hay registros.
+                                                </p>
+                                            )}
+                                        </div>
+                                    </ScrollArea>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 </div>
             </div>
