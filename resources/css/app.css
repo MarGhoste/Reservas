@@ -7,6 +7,7 @@
 @tailwind utilities;
 
 @source '../views';
+@source '../js';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
@@ -208,6 +209,42 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+.theme-barbershop {
+    --background: oklch(0.18 0.01 255); /* Dark slate */
+    --foreground: oklch(0.95 0.01 80); /* Off-white */
+    --card: oklch(0.22 0.01 255); /* Slightly lighter slate */
+    --card-foreground: oklch(0.95 0.01 80);
+    --popover: oklch(0.22 0.01 255);
+    --popover-foreground: oklch(0.95 0.01 80);
+    --primary: oklch(0.75 0.15 75); /* Amber/gold */
+    --primary-foreground: oklch(0.15 0.01 255); /* Dark text on gold */
+    --secondary: oklch(0.28 0.01 255); /* Medium slate */
+    --secondary-foreground: oklch(0.95 0.01 80);
+    --muted: oklch(0.28 0.01 255);
+    --muted-foreground: oklch(0.65 0.01 255); /* Muted slate-gray */
+    --accent: oklch(0.75 0.15 75); /* Amber/gold accent */
+    --accent-foreground: oklch(0.15 0.01 255);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: oklch(0.32 0.01 255); /* Subtle slate border */
+    --input: oklch(0.32 0.01 255);
+    --ring: oklch(0.75 0.15 75); /* Gold ring */
+    --chart-1: oklch(0.75 0.15 75);
+    --chart-2: oklch(0.6 0.118 184.704);
+    --chart-3: oklch(0.398 0.07 227.392);
+    --chart-4: oklch(0.828 0.189 84.429);
+    --chart-5: oklch(0.769 0.188 70.08);
+    --radius: 0.5rem;
+    --sidebar: oklch(0.22 0.01 255);
+    --sidebar-foreground: oklch(0.95 0.01 80);
+    --sidebar-primary: oklch(0.75 0.15 75);
+    --sidebar-primary-foreground: oklch(0.15 0.01 255);
+    --sidebar-accent: oklch(0.28 0.01 255);
+    --sidebar-accent-foreground: oklch(0.95 0.01 80);
+    --sidebar-border: oklch(0.32 0.01 255);
+    --sidebar-ring: oklch(0.75 0.15 75);
 }
 
 .react-calendar__tile.cierre-total {
