@@ -12,7 +12,7 @@ export function Navigation() {
     const [isOpen, setIsOpen] = useState(false);
 
     const navLinks = [
-        { href: '#', label: 'Inicio' },
+        { href: '/', label: 'Inicio' },
         { href: '#contact', label: 'Contacto' },
     ];
 
@@ -30,15 +30,25 @@ export function Navigation() {
 
                     {/* Desktop Navigation */}
                     <div className="hidden items-center gap-8 md:flex">
-                        {navLinks.map((link) => (
-                            <a
-                                key={link.href}
-                                href={link.href}
-                                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                            >
-                                {link.label}
-                            </a>
-                        ))}
+                        {navLinks.map((link) =>
+                            link.href.startsWith('#') ? (
+                                <a
+                                    key={link.href}
+                                    href={link.href}
+                                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                                >
+                                    {link.label}
+                                </a>
+                            ) : (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                                >
+                                    {link.label}
+                                </Link>
+                            ),
+                        )}
                         <Button
                             asChild
                             size="sm"
@@ -61,16 +71,27 @@ export function Navigation() {
                             className="w-[300px] sm:w-[400px]"
                         >
                             <div className="mt-8 flex flex-col gap-6">
-                                {navLinks.map((link) => (
-                                    <a
-                                        key={link.href}
-                                        href={link.href}
-                                        onClick={() => setIsOpen(false)}
-                                        className="text-lg text-foreground transition-colors hover:text-primary"
-                                    >
-                                        {link.label}
-                                    </a>
-                                ))}
+                                {navLinks.map((link) =>
+                                    link.href.startsWith('#') ? (
+                                        <a
+                                            key={link.href}
+                                            href={link.href}
+                                            onClick={() => setIsOpen(false)}
+                                            className="text-lg text-foreground transition-colors hover:text-primary"
+                                        >
+                                            {link.label}
+                                        </a>
+                                    ) : (
+                                        <Link
+                                            key={link.href}
+                                            href={link.href}
+                                            onClick={() => setIsOpen(false)}
+                                            className="text-lg text-foreground transition-colors hover:text-primary"
+                                        >
+                                            {link.label}
+                                        </Link>
+                                    ),
+                                )}
                                 <Button
                                     asChild
                                     className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
