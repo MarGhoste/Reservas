@@ -36,12 +36,12 @@ const ServicioCard: React.FC<{ servicio: Servicio }> = ({ servicio }) => {
     return (
         <Card className="overflow-hidden transition-all hover:shadow-lg">
             {/* Simulación de Imagen del Servicio */}
-            <div className="flex h-40 items-center justify-center bg-slate-100">
-                <Scissors className="h-12 w-12 text-slate-400" />
+            <div className="flex h-40 items-center justify-center bg-muted">
+                <Scissors className="h-12 w-12 text-muted-foreground" />
             </div>
 
             <CardHeader>
-                <CardTitle className="text-xl font-bold text-slate-800">
+                <CardTitle className="text-xl font-bold">
                     {servicio.nombre}
                 </CardTitle>
             </CardHeader>
@@ -52,7 +52,7 @@ const ServicioCard: React.FC<{ servicio: Servicio }> = ({ servicio }) => {
                         <Banknote className="mr-2 h-4 w-4" />
                         Precio
                     </span>
-                    <span className="font-semibold text-slate-900">
+                    <span className="font-semibold">
                         {formatCurrency(servicio.precio)}
                     </span>
                 </div>
@@ -61,17 +61,14 @@ const ServicioCard: React.FC<{ servicio: Servicio }> = ({ servicio }) => {
                         <Clock className="mr-2 h-4 w-4" />
                         Duración
                     </span>
-                    <span className="font-semibold text-slate-900">
+                    <span className="font-semibold">
                         {servicio.duracion_minutos} min
                     </span>
                 </div>
             </CardContent>
 
             <CardFooter>
-                <Button
-                    asChild
-                    className="w-full bg-indigo-600 hover:bg-indigo-700"
-                >
+                <Button asChild className="w-full">
                     <Link
                         href={route('barberia.reservacion', {
                             servicio_id: servicio.id,
@@ -91,7 +88,7 @@ const ServiciosIndex: React.FC<ServiciosProps> = ({ auth, servicios }) => {
         <AppLayout
             user={auth.user}
             header={
-                <h2 className="text-xl leading-tight font-semibold text-gray-800">
+                <h2 className="text-xl leading-tight font-semibold">
                     Servicios Disponibles
                 </h2>
             }
@@ -101,10 +98,10 @@ const ServiciosIndex: React.FC<ServiciosProps> = ({ auth, servicios }) => {
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="mb-8">
-                        <h1 className="text-4xl font-extrabold text-gray-900">
+                        <h1 className="text-4xl font-extrabold">
                             ¡Elige tu Estilo!
                         </h1>
-                        <p className="mt-2 text-xl text-gray-600">
+                        <p className="mt-2 text-xl text-muted-foreground">
                             Revisa nuestra lista de servicios y comienza tu
                             reserva.
                         </p>
@@ -121,8 +118,8 @@ const ServiciosIndex: React.FC<ServiciosProps> = ({ auth, servicios }) => {
                             ))}
                         </div>
                     ) : (
-                        <div className="rounded-lg border-4 border-dashed border-gray-300 p-10 text-center">
-                            <p className="text-lg text-gray-500">
+                        <div className="rounded-lg border-4 border-dashed border-muted p-10 text-center">
+                            <p className="text-lg text-muted-foreground">
                                 Actualmente no hay servicios activos
                                 disponibles.
                             </p>
@@ -135,13 +132,3 @@ const ServiciosIndex: React.FC<ServiciosProps> = ({ auth, servicios }) => {
 };
 
 export default ServiciosIndex;
-
-// NOTA ADICIONAL: Si aún no tienes un archivo de utilidades, puedes crearlo:
-// resources/js/Utils/formatters.ts o .js
-/* export const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('es-CO', { 
-        style: 'currency',
-        currency: 'USD', 
-    }).format(amount);
-};
-*/

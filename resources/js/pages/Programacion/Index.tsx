@@ -41,13 +41,13 @@ const ProgramacionIndex: React.FC<ProgramacionProps> = ({ auth, reservas }) => {
     const getEstadoClass = (estado: string) => {
         switch (estado) {
             case 'confirmada':
-                return 'bg-green-100 text-green-800';
+                return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
             case 'pendiente':
-                return 'bg-yellow-100 text-yellow-800';
+                return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
             case 'cancelada':
-                return 'bg-red-100 text-red-800';
+                return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
             default:
-                return 'bg-gray-100 text-gray-800';
+                return 'bg-muted text-muted-foreground';
         }
     };
 
@@ -74,7 +74,7 @@ const ProgramacionIndex: React.FC<ProgramacionProps> = ({ auth, reservas }) => {
         <AppLayout
             user={auth.user}
             header={
-                <h2 className="text-xl leading-tight font-semibold text-gray-800">
+                <h2 className="text-xl leading-tight font-semibold">
                     Mi Programación de Citas
                 </h2>
             }
@@ -84,22 +84,22 @@ const ProgramacionIndex: React.FC<ProgramacionProps> = ({ auth, reservas }) => {
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="space-y-6">
-                        <h1 className="text-3xl font-bold text-gray-900">
+                        <h1 className="text-3xl font-bold">
                             Tus Próximas Citas ({reservas.length})
                         </h1>
 
                         {reservas.length === 0 ? (
                             // ... (Div de "No hay reservas" se mantiene)
-                            <Card className="border-dashed bg-slate-50">
+                            <Card className="border-dashed bg-muted/50">
                                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                                    <CalendarCheck className="mb-3 h-10 w-10 text-slate-400" />
-                                    <p className="text-xl font-medium text-slate-500">
+                                    <CalendarCheck className="mb-3 h-10 w-10 text-muted-foreground" />
+                                    <p className="text-xl font-medium text-muted-foreground">
                                         No tienes ninguna reserva agendada.
                                     </p>
                                     <Button
                                         asChild
                                         variant="link"
-                                        className="mt-4 text-indigo-600"
+                                        className="mt-4 text-primary"
                                     >
                                         <Link href={route('dashboard')}>
                                             ¡Reserva tu primer servicio ahora!
@@ -123,7 +123,7 @@ const ProgramacionIndex: React.FC<ProgramacionProps> = ({ auth, reservas }) => {
                                         >
                                             <CardHeader className="pb-2">
                                                 <div className="flex items-start justify-between">
-                                                    <CardTitle className="text-xl font-bold text-indigo-600">
+                                                    <CardTitle className="text-xl font-bold text-primary">
                                                         {reserva.servicio}
                                                     </CardTitle>
                                                     <Badge
@@ -136,9 +136,9 @@ const ProgramacionIndex: React.FC<ProgramacionProps> = ({ auth, reservas }) => {
                                                 </div>
                                             </CardHeader>
                                             <CardContent>
-                                                <div className="grid grid-cols-1 gap-y-2 text-sm text-gray-700 md:grid-cols-2">
+                                                <div className="grid grid-cols-1 gap-y-2 text-sm text-muted-foreground md:grid-cols-2">
                                                     <p className="flex items-center">
-                                                        <Clock className="mr-2 h-4 w-4 text-indigo-400" />
+                                                        <Clock className="mr-2 h-4 w-4 text-primary" />
                                                         <span className="mr-1 font-semibold">
                                                             Inicio:
                                                         </span>{' '}
@@ -158,7 +158,7 @@ const ProgramacionIndex: React.FC<ProgramacionProps> = ({ auth, reservas }) => {
                                                     </p>
 
                                                     <p className="flex items-center">
-                                                        <User className="mr-2 h-4 w-4 text-indigo-400" />
+                                                        <User className="mr-2 h-4 w-4 text-primary" />
                                                         <span className="mr-1 font-semibold">
                                                             Barbero:
                                                         </span>{' '}
@@ -166,7 +166,7 @@ const ProgramacionIndex: React.FC<ProgramacionProps> = ({ auth, reservas }) => {
                                                     </p>
 
                                                     <p className="flex items-center">
-                                                        <Tag className="mr-2 h-4 w-4 text-indigo-400" />
+                                                        <Tag className="mr-2 h-4 w-4 text-primary" />
                                                         <span className="mr-1 font-semibold">
                                                             Costo:
                                                         </span>{' '}
