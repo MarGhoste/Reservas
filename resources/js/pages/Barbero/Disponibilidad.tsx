@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { type User } from '@/types';
 import { CalendarOff, CalendarPlus, Trash2 } from 'lucide-react';
 
 // --- INTERFACES ---
@@ -35,9 +36,8 @@ interface Ausencia {
     motivo: string;
     fecha_raw: string; // YYYY-MM-DD
 }
-
 interface DisponibilidadProps {
-    auth: { user: any };
+    auth: { user: User | null };
     misAusencias: Ausencia[];
 }
 

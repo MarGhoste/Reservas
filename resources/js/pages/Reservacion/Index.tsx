@@ -1,6 +1,7 @@
 // resources/js/Pages/Reservacion/Index.tsx
 
 import AppLayout from '@/layouts/app-layout';
+import { type User } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios'; // Importamos Axios para la llamada API asíncrona
 import React, { useEffect, useState } from 'react';
@@ -16,13 +17,18 @@ interface BarberoProps {
     id: number;
     name: string;
 }
+
 interface ReservacionProps {
-    auth: { user: any };
+    auth: { user: User | null };
     servicio: ServicioProps;
     barberos: BarberoProps[];
 }
-interface HorarioSlot {
-    time: string; // Formato "HH:mm"
+
+interface FormData {
+    servicio_id: number;
+    barbero_id: number | null;
+    fecha_inicio: string | null;
+    cliente_id?: number | null;
 }
 
 // --- CONSTANTES ---
@@ -41,9 +47,9 @@ const StepIndicator: React.FC<{
     // ... (El código de StepIndicator se mantiene)
     const isActive = step === currentStep;
     const isCompleted = step < currentStep;
-    let baseClasses =
+    const baseClasses =
         'w-10 h-10 flex items-center justify-center rounded-full font-bold';
-    let colorClasses = isCompleted
+    const colorClasses = isCompleted
         ? 'bg-green-600 text-primary-foreground'
         : isActive
           ? 'bg-primary text-primary-foreground'
@@ -140,12 +146,12 @@ const PasoBarbero: React.FC<{
 
 // --- NUEVO COMPONENTE: PASO 2 - SELECCIÓN DE FECHA Y HORA ---
 const PasoFechaHora: React.FC<{
-    formData: any;
+    formData: FormData;
     servicio: ServicioProps;
     barberos: BarberoProps[];
-    setFormData: Function;
-    setCurrentStep: Function;
-    onBack: Function;
+    setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+    setCurrentStep: (step: number) => void;
+    onBack: () => void;
 }> = ({
     formData,
     servicio,
@@ -164,22 +170,37 @@ const PasoFechaHora: React.FC<{
         ? barberos.find((b) => b.id === formData.barbero_id)?.name
         : 'Cualquier Barbero';
 
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newDate = e.target.value;
+        setSelectedDate(newDate);
+        if (newDate) {
+            setIsLoading(true);
+            setError(null);
+            setAvailableSlots([]);
+        } else {
+            // Si se limpia la fecha, reseteamos todo
+            setIsLoading(false);
+            setError(null);
+            setAvailableSlots([]);
+        }
+    };
+
     // Hook para obtener horarios disponibles al cambiar fecha o barbero
     useEffect(() => {
-        if (!selectedDate) return;
+        if (!selectedDate) {
+            return; // No hacer nada si no hay fecha seleccionada
+        }
 
-        setIsLoading(true);
-        setError(null);
-        setAvailableSlots([]);
+        const controller = new AbortController();
 
-        // Llama al nuevo endpoint de API
         axios
             .get(route('horarios.disponibles'), {
                 params: {
                     servicio_id: formData.servicio_id,
                     fecha: selectedDate,
-                    barbero_id: formData.barbero_id, // Puede ser null
+                    barbero_id: formData.barbero_id,
                 },
+                signal: controller.signal,
             })
             .then((response) => {
                 setAvailableSlots(response.data.slots);
@@ -188,6 +209,7 @@ const PasoFechaHora: React.FC<{
                 }
             })
             .catch((err) => {
+                if (axios.isCancel(err)) return; // Ignorar errores de cancelación
                 console.error(err);
                 setError(
                     'Error al cargar los horarios. Intenta con otra fecha.',
@@ -196,6 +218,8 @@ const PasoFechaHora: React.FC<{
             .finally(() => {
                 setIsLoading(false);
             });
+
+        return () => controller.abort();
     }, [selectedDate, formData.barbero_id, formData.servicio_id]);
 
     // Manejar la selección final del slot
@@ -203,7 +227,7 @@ const PasoFechaHora: React.FC<{
         // Combinamos la fecha y la hora para formar el datetime de inicio
         const fechaHora = `${selectedDate} ${time}`;
 
-        setFormData((prev: any) => ({ ...prev, fecha_inicio: fechaHora }));
+        setFormData((prev) => ({ ...prev, fecha_inicio: fechaHora }));
         setCurrentStep(STEPS.CONFIRMACION);
     };
 
@@ -237,7 +261,7 @@ const PasoFechaHora: React.FC<{
                         id="date-picker"
                         min={new Date().toISOString().split('T')[0]} // Mínimo hoy
                         value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
+                        onChange={handleDateChange}
                         className="w-full rounded-lg border border-input bg-background shadow-sm focus-visible:ring-ring"
                     />
                 </div>
@@ -303,10 +327,10 @@ const ReservacionIndex: React.FC<ReservacionProps> = ({
 }) => {
     // ... (El estado y las constantes se mantienen)
     const [currentStep, setCurrentStep] = useState(STEPS.BARBERO);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormData>({
         servicio_id: servicio.id,
-        barbero_id: null as number | null,
-        fecha_inicio: null as string | null, // Almacena el datetime final
+        barbero_id: null,
+        fecha_inicio: null, // Almacena el datetime final
     });
 
     const handleBarberoSelect = (barberoId: number | null) => {
@@ -316,7 +340,7 @@ const ReservacionIndex: React.FC<ReservacionProps> = ({
 
     const handleBack = () => {
         // Si volvemos, reiniciamos la fecha/hora
-        setFormData((prev: any) => ({ ...prev, fecha_inicio: null }));
+        setFormData((prev) => ({ ...prev, fecha_inicio: null }));
         setCurrentStep(STEPS.BARBERO);
     };
 
@@ -357,6 +381,7 @@ const ReservacionIndex: React.FC<ReservacionProps> = ({
             case STEPS.FECHA_HORA:
                 return (
                     <PasoFechaHora
+                        key={formData.barbero_id} // Clave para forzar reseteo de estado al cambiar de barbero
                         formData={formData}
                         servicio={servicio}
                         barberos={barberos}

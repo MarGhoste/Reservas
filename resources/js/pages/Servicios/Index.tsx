@@ -12,6 +12,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { type User } from '@/types';
 import { formatCurrency } from '@/Utils/formatters';
 import { Banknote, Clock, Scissors } from 'lucide-react';
 
@@ -27,7 +28,7 @@ interface Servicio {
 
 // Define la forma de las props que recibe el componente principal
 interface ServiciosProps {
-    auth: { user: any }; // Si usas Laravel Auth, o ajusta si no usas 'auth'
+    auth: { user: User | null }; // Si usas Laravel Auth, o ajusta si no usas 'auth'
     servicios: Servicio[];
 }
 

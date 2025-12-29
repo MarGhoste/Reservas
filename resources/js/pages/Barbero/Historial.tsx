@@ -31,12 +31,25 @@ interface HistorialCita {
     estado: string;
 }
 
+interface User {
+    id: number;
+    name: string;
+    email: string;
+    [key: string]: unknown;
+}
+
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
 // La prop 'historialCitas' viene paginada (Inertia/Laravel)
 interface HistorialProps {
-    auth: { user: any };
+    auth: { user: User | null };
     historialCitas: {
         data: HistorialCita[];
-        links: any[]; // Links de paginación
+        links: PaginationLink[]; // Links de paginación
         // ... otras propiedades de paginación (current_page, last_page, etc.)
     };
 }

@@ -15,7 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { type User } from '@/types';
+import { Head, router } from '@inertiajs/react';
 import { Mail, Scissors } from 'lucide-react';
 
 interface Reserva {
@@ -28,15 +29,10 @@ interface Reserva {
     cliente_email: string;
     estado: 'confirmada' | 'pendiente' | string;
 }
-
 interface AgendaProps {
-    auth: { user: any };
+    auth: { user: User | null };
     reservasHoy: Reserva[];
     fechaActual: string;
-}
-
-function handleComplete(reservationId: number) {
-    // Implementation for handling completion of a reservation
 }
 
 export default function Agenda({
@@ -44,6 +40,16 @@ export default function Agenda({
     reservasHoy,
     fechaActual,
 }: AgendaProps) {
+    const handleComplete = (reservationId: number) => {
+        router.post(
+            route('barbero.agenda.complete', reservationId),
+            {},
+            {
+                preserveScroll: true,
+            },
+        );
+    };
+
     return (
         <AppLayout
             user={auth.user}

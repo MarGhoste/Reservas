@@ -6,7 +6,11 @@ import { Link } from '@inertiajs/react';
 import { Menu, Scissors } from 'lucide-react';
 import { useState } from 'react';
 
-declare var route: (...args: any[]) => string;
+declare let route: (
+    name?: string,
+    params?: Record<string, unknown> | string | number,
+    absolute?: boolean,
+) => string;
 
 export function Navigation() {
     const [isOpen, setIsOpen] = useState(false);

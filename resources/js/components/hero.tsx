@@ -2,7 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/react';
 import { Calendar } from 'lucide-react';
 
-declare var route: (...args: any[]) => string;
+declare let route: (
+    name?: string,
+    params?: Record<string, unknown> | string | number,
+    absolute?: boolean,
+) => string;
 
 export function Hero() {
     return (

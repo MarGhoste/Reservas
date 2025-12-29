@@ -1,5 +1,6 @@
-import { InertiaLinkProps } from '@inertiajs/react';
+//import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
+import { Config, RouteParam, RouteParamsWithQueryOverload } from 'ziggy-js';
 
 export interface Auth {
     user: User;
@@ -17,7 +18,7 @@ export interface NavGroup {
 
 export interface NavItem {
     title: string;
-    href: NonNullable<InertiaLinkProps['href']>;
+    href: string;
     icon?: LucideIcon | null;
     isActive?: boolean;
 }
@@ -39,5 +40,21 @@ export interface User {
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
+    es_persnal
     [key: string]: unknown; // This allows for additional properties...
 }
+declare global {
+    // Esto define la función route de forma global en tu proyecto
+    function route(
+        name?: string,
+        params?: RouteParamsWithQueryOverload | RouteParam,
+        absolute?: boolean,
+        config?: Config
+    ): string & {
+        // Aquí añadimos explícitamente el método que te está fallando
+        toString(): string;
+        check(name: string): boolean;
+    };
+}
+
+export {};

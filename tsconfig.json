@@ -116,6 +116,13 @@
     "include": [
         "resources/js/**/*.ts",
         "resources/js/**/*.d.ts",
-        "resources/js/**/*.tsx"
+        "resources/js/**/*.tsx",
+        "resources/js/types/**/*.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "public",
+        "resources/js/actions/Livewire",
+        "vendor"
     ]
 }

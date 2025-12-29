@@ -14,8 +14,10 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { type User } from '@/types';
 
 // --- INTERFACES (Se mantienen igual) ---
+
 interface DiaIndisponible {
     date: string; // YYYY-MM-DD
     title: string;
@@ -23,7 +25,7 @@ interface DiaIndisponible {
     barberos: string;
 }
 interface AusenciasProps {
-    auth: { user: any };
+    auth: { user: User | null };
     diasIndisponibles: DiaIndisponible[];
 }
 

@@ -21,6 +21,13 @@ import { CalendarCheck, Clock, Tag, User } from 'lucide-react';
 import React from 'react';
 
 // 1. INTERFACES DE TYPESCRIPT
+
+interface User {
+    id: number;
+    name: string;
+    email: string;
+    [key: string]: unknown;
+}
 interface ReservaProps {
     id: number;
     fecha_inicio: string; // Formato YYYY-MM-DD HH:mm
@@ -32,7 +39,7 @@ interface ReservaProps {
 }
 
 interface ProgramacionProps {
-    auth: { user: any };
+    auth: { user: User | null };
     reservas: ReservaProps[];
 }
 

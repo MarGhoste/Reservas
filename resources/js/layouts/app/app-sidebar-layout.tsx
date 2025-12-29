@@ -1,14 +1,14 @@
 import { AppContent } from '@/components/app-content';
+import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
-import { AppShell } from '@/components/app-shell';
 import { type BreadcrumbItem, type User } from '@/types';
 import { type ReactNode } from 'react';
 
 interface AppSidebarLayoutProps {
     children: ReactNode;
     breadcrumbs?: BreadcrumbItem[];
-    user?: User; // <-- 1. ACEPTAR LA PROP 'user'
+    user?: User | null;
 }
 
 export default function AppSidebarLayout({

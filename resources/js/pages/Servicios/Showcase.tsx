@@ -8,6 +8,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { type User } from '@/types';
 import { formatCurrency } from '@/Utils/formatters';
 import { Head } from '@inertiajs/react'; // No necesitamos Link si no hay botones de acción
 import { Banknote, Clock, Scissors } from 'lucide-react';
@@ -26,7 +27,7 @@ interface Servicio {
 
 // Define la forma de las props que recibe el componente principal
 interface ServiciosShowcaseProps {
-    auth: { user: any };
+    auth: { user: User | null };
     servicios: Servicio[];
 }
 

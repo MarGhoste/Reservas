@@ -22,7 +22,11 @@ import {
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
-declare var route: (...args: any[]) => string;
+declare let route: (
+    name?: string,
+    params?: Record<string, unknown> | string | number,
+    absolute?: boolean,
+) => string;
 
 // --- INTERFAZ DE USUARIO (NECESARIA PARA TIPADO EN TYPESCRIPT) ---
 interface User {

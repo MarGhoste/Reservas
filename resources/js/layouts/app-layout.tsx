@@ -1,6 +1,6 @@
 import ChatbotFAQ from '@/components/ChatbotFAQ';
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type User } from '@/types';
 import { type ReactNode } from 'react';
 import '../../css/estilobarbeshop.css';
 
@@ -8,7 +8,7 @@ interface AppLayoutProps {
     children: ReactNode;
     breadcrumbs?: BreadcrumbItem[];
     header?: ReactNode;
-    user?: any;
+    user?: User | null;
 }
 
 export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => (
