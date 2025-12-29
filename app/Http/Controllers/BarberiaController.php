@@ -22,7 +22,7 @@ class BarberiaController extends Controller
     {
         // Obtener solo los servicios que están activos para mostrar al público
         $servicios = Servicio::where('activo', true)
-            ->select('id', 'nombre', 'precio', 'duracion_minutos')
+            ->select('id', 'nombre', 'precio', 'duracion_minutos', 'descripcion', 'imagen_url')
             ->get();
 
         // Renderizar el componente de React (Servicios/Index.jsx) y pasar los datos
@@ -34,7 +34,7 @@ class BarberiaController extends Controller
     public function serviciosShowcase()
     {
         $servicios = Servicio::where('activo', true)
-            ->select('id', 'nombre', 'precio', 'duracion_minutos')
+            ->select('id', 'nombre', 'precio', 'duracion_minutos', 'descripcion', 'imagen_url')
             ->get();
 
         // **APUNTA AL COMPONENTE ESTILÍSTICO SIN ACCIÓN**

@@ -5,12 +5,14 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ServicioResource\Pages;
 use App\Models\Servicio;
 use Filament\Forms\Components\Card;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
@@ -53,6 +55,21 @@ class ServicioResource extends Resource
                         ->prefix('$') // Prefijo de moneda (ejemplo)
                         ->inputMode('decimal'), // Permite decimales
 
+                    // Campo 5: Descripción (opcional)
+                    Textarea::make('descripcion')
+                        ->label('Descripción del Servicio')
+                        ->nullable()
+                        ->columnSpanFull(), // Ocupa todo el ancho
+
+                    // Campo 6: URL de la Imagen (opcional)
+                    FileUpload::make('imagen_url')
+                        ->label('Imagen del Servicio')
+                        ->image() // Valida que sea una imagen y muestra previsualización
+                        ->disk('public') // Asegura explícitamente el disco público
+                        ->directory('servicios') // Directorio en el disco público (storage/app/public/servicios)
+                        ->nullable()
+                        ->columnSpanFull(),
+
                     // Campo 4: Estado Activo/Inactivo
                     Toggle::make('activo')
                         ->label('Activo')
@@ -67,10 +84,15 @@ class ServicioResource extends Resource
     {
         return $table
             ->columns([
+                ImageColumn::make('imagen_url')
+                    ->label('Imagen')
+                    ->square(),
+
                 TextColumn::make('nombre')
                     ->label('Servicio')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->description(fn(Servicio $record): ?string => $record->descripcion),
 
                 TextColumn::make('duracion_minutos')
                     ->label('Duración')

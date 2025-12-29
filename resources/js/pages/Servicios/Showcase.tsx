@@ -22,6 +22,7 @@ interface Servicio {
     nombre: string;
     precio: number;
     descripcion: string; // Nueva propiedad
+    imagen_url: string | null; // Campo para la URL de la imagen
     duracion_minutos: number;
 }
 
@@ -36,22 +37,38 @@ const ServicioShowcaseCard: React.FC<{ servicio: Servicio }> = ({
     servicio,
 }) => {
     return (
-        <Card className="flex flex-col items-center text-center transition-all duration-300 hover:scale-[1.01] hover:shadow-xl">
-            <CardHeader className="flex flex-col items-center pb-2">
-                {/* Icono o Imagen Sugerente */}
-                <div className="mb-4 rounded-full bg-muted p-4 text-primary">
-                    <Scissors className="h-8 w-8" />
-                </div>
-                <CardTitle className="text-2xl font-bold">
+        <Card className="flex flex-col overflow-hidden text-center transition-all duration-300 hover:scale-[1.01] hover:shadow-xl">
+            {/* Contenedor de la Imagen */}
+            <div className="h-48 w-full bg-muted">
+                {servicio.imagen_url ? (
+                    <img
+                        src={
+                            servicio.imagen_url.startsWith('http')
+                                ? servicio.imagen_url
+                                : `/storage/${servicio.imagen_url}`
+                        }
+                        alt={`Imagen de ${servicio.nombre}`}
+                        className="h-full w-full object-contain p-2" // Centra la imagen sin recortarla
+                    />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                        <Scissors className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                )}
+            </div>
+            <CardHeader className="pt-6">
+                <CardTitle className="font-serif text-3xl font-medium">
                     {servicio.nombre}
                 </CardTitle>
             </CardHeader>
 
-            <CardContent className="flex-grow">
-                <p className="text-muted-foreground">{servicio.descripcion}</p>
+            <CardContent className="flex-grow px-6 pb-4">
+                <p className="leading-relaxed text-muted-foreground">
+                    {servicio.descripcion}
+                </p>
             </CardContent>
 
-            <CardFooter className="mt-auto flex w-full justify-center space-x-6 pt-4 text-sm font-medium text-muted-foreground">
+            <CardFooter className="mt-auto flex w-full justify-center space-x-6 border-t bg-muted/50 p-4 text-sm font-medium text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                     <Clock className="h-5 w-5 text-emerald-500" />
                     {servicio.duracion_minutos} min
@@ -84,7 +101,7 @@ export default function ServiciosShowcase({
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="mb-10 text-center">
-                        <h1 className="text-5xl leading-tight font-extrabold">
+                        <h1 className="font-serif text-5xl leading-tight font-bold">
                             Descubre Nuestros Estilos
                         </h1>
                         <p className="mx-auto mt-4 max-w-2xl text-xl text-muted-foreground">

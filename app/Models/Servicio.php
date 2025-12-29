@@ -15,6 +15,8 @@ class Servicio extends Model
         'nombre',
         'precio',
         'duracion_minutos',
+        'descripcion',
+        'imagen_url',
         'activo',
     ];
 
