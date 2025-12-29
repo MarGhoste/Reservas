@@ -23,6 +23,7 @@ interface Servicio {
     id: number;
     nombre: string;
     precio: number;
+    imagen_url: string | null;
     duracion_minutos: number;
 }
 
@@ -35,10 +36,24 @@ interface ServiciosProps {
 // Componente individual de la Tarjeta de Servicio (TypeScript)
 const ServicioCard: React.FC<{ servicio: Servicio }> = ({ servicio }) => {
     return (
-        <Card className="overflow-hidden transition-all hover:shadow-lg">
-            {/* Simulación de Imagen del Servicio */}
-            <div className="flex h-40 items-center justify-center bg-muted">
-                <Scissors className="h-12 w-12 text-muted-foreground" />
+        <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:scale-[1.01] hover:shadow-xl">
+            {/* Contenedor de la Imagen (igual que en Showcase) */}
+            <div className="h-48 w-full bg-muted">
+                {servicio.imagen_url ? (
+                    <img
+                        src={
+                            servicio.imagen_url.startsWith('http')
+                                ? servicio.imagen_url
+                                : `/storage/${servicio.imagen_url}`
+                        }
+                        alt={`Imagen de ${servicio.nombre}`}
+                        className="h-full w-full object-contain p-2"
+                    />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                        <Scissors className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                )}
             </div>
 
             <CardHeader>
@@ -47,7 +62,7 @@ const ServicioCard: React.FC<{ servicio: Servicio }> = ({ servicio }) => {
                 </CardTitle>
             </CardHeader>
 
-            <CardContent className="space-y-3">
+            <CardContent className="flex-grow space-y-3">
                 <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center text-muted-foreground">
                         <Banknote className="mr-2 h-4 w-4" />
@@ -68,7 +83,7 @@ const ServicioCard: React.FC<{ servicio: Servicio }> = ({ servicio }) => {
                 </div>
             </CardContent>
 
-            <CardFooter>
+            <CardFooter className="mt-auto">
                 <Button asChild className="w-full">
                     <Link
                         href={route('barberia.reservacion', {

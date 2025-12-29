@@ -50,6 +50,14 @@ class ServicioSeeder extends Seeder
                 'activo' => true,
                 'imagen_path' => null,
             ],
+            [
+                'nombre' => 'Tratamiento Capilar Fortalecedor',
+                'descripcion' => 'Tratamiento intensivo con tónicos activadores y masaje capilar estimulante para prevenir la caída y fortalecer el cabello.',
+                'precio' => 14.00,
+                'duracion_minutos' => 25,
+                'activo' => true,
+                'imagen_path' => null,
+            ],
         ];
 
         foreach ($servicios as $servicio) {
