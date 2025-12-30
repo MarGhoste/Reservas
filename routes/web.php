@@ -34,8 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // 1. La ruta '/dashboard' ahora muestra el catálogo de servicios
     // Sobreescribe/reemplaza el dashboard Inertia por defecto.
     Route::get('/dashboard', [BarberiaController::class, 'servicios'])->name('dashboard');
-    // También puedes darle un nombre de ruta específico si lo necesitas, ej:
-    // Route::get('/dashboard', [BarberiaController::class, 'servicios'])->name('barberia.servicios');
+
 
     // 2. Ruta para la página de reservación (ahora protegida)
     Route::get('/reserva', [BarberiaController::class, 'reservacion'])->name('barberia.reservacion');
@@ -72,5 +71,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 
-// Asegúrate de que este require esté al final si es necesario
 require __DIR__ . '/settings.php';

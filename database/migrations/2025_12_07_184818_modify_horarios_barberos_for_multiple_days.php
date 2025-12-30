@@ -28,9 +28,7 @@ return new class extends Migration
             $table->json('dias_semana')->after('barbero_id');
             $table->unique(['barbero_id', 'hora_inicio', 'hora_fin']);
 
-            // PASO 4 (Opcional pero recomendado): Eliminamos el índice simple que creamos,
-            // ya que la clave foránea ahora puede usar el nuevo índice único que empieza por 'barbero_id'.
-            // Laravel lo nombrará 'horario_barberos_barbero_id_index'.
+
             $table->dropIndex('horario_barberos_barbero_id_index');
         });
     }
