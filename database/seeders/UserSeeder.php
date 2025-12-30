@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
 
         // 3. Crear Barbero (Con Rol)
         $barber = User::updateOrCreate(
-            ['email' => 'sincovid19marco@gmail.com.com'],
+            ['email' => 'sincovid19marco@gmail.com'],
             [
                 'name' => 'Marco Barbero',
                 'password' => Hash::make('12345678'),
