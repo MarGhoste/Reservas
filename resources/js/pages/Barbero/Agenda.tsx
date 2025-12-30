@@ -94,7 +94,7 @@ export default function Agenda({
                                                 {reserva.fecha_inicio_hora}
                                             </span>
                                             <span className="mt-3 text-[10px] font-black tracking-[0.2em] text-muted-foreground uppercase">
-                                                HOLA INICIO
+                                                HORA INICIO
                                             </span>
                                         </div>
 
@@ -185,13 +185,17 @@ export default function Agenda({
                                                                 Cancelar
                                                             </AlertDialogCancel>
                                                             <AlertDialogAction
-                                                                onClick={() =>
-                                                                    handleComplete(
-                                                                        reserva.id,
-                                                                    )
-                                                                }
+                                                                asChild
                                                             >
-                                                                Confirmar
+                                                                <Button
+                                                                    onClick={() =>
+                                                                        handleComplete(
+                                                                            reserva.id,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Confirmar
+                                                                </Button>
                                                             </AlertDialogAction>
                                                         </AlertDialogFooter>
                                                     </AlertDialogContent>

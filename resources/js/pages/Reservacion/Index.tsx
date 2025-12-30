@@ -1,5 +1,16 @@
 // resources/js/Pages/Reservacion/Index.tsx
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import AppLayout from '@/layouts/app-layout';
 import { type User } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -361,9 +372,6 @@ const ReservacionIndex: React.FC<ReservacionProps> = ({
             // Manejo de éxito/fallo
         });
 
-        alert(
-            `Simulación de Reserva:\nBarbero: ${formData.barbero_id}\nFecha/Hora: ${formData.fecha_inicio}\n¡Reserva en progreso!`,
-        );
         // Simulación:
         setCurrentStep(4); // Creamos un paso final de agradecimiento
     };
@@ -413,12 +421,56 @@ const ReservacionIndex: React.FC<ReservacionProps> = ({
                             </li>
                         </ul>
 
-                        <button
-                            onClick={handleFinalSubmit}
-                            className="mt-6 rounded bg-primary px-6 py-3 text-primary-foreground transition hover:bg-primary/90"
-                        >
-                            Finalizar Reserva
-                        </button>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <button className="mt-6 rounded bg-primary px-6 py-3 text-primary-foreground transition hover:bg-primary/90">
+                                    Finalizar Reserva
+                                </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                        ¿Confirmar Reserva?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Estás a punto de confirmar tu cita.
+                                        Revisa que los detalles sean correctos:
+                                        <ul className="my-3 list-inside list-disc space-y-1 rounded-md bg-muted p-4 text-left text-sm">
+                                            <li>
+                                                <strong>Servicio:</strong>{' '}
+                                                {servicio.nombre}
+                                            </li>
+                                            <li>
+                                                <strong>Barbero:</strong>{' '}
+                                                {barberoSeleccionado}
+                                            </li>
+                                            <li>
+                                                <strong>Fecha y Hora:</strong>{' '}
+                                                {formData.fecha_inicio
+                                                    ? new Date(
+                                                          formData.fecha_inicio,
+                                                      ).toLocaleString([], {
+                                                          dateStyle: 'long',
+                                                          timeStyle: 'short',
+                                                      })
+                                                    : 'N/A'}
+                                            </li>
+                                        </ul>
+                                        ¿Deseas continuar?
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                        Modificar
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                        onClick={handleFinalSubmit}
+                                    >
+                                        Confirmar y Reservar
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                         <button
                             onClick={() => setCurrentStep(STEPS.FECHA_HORA)}
                             className="ml-4 text-muted-foreground hover:text-primary"

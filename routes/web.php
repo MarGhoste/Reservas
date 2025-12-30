@@ -6,7 +6,7 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BarberController;
-use App\Http\Controllers\BarberiaController; // Asegúrate de que esta línea esté al principio
+use App\Http\Controllers\BarberiaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,7 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Aquí irán las rutas de historial y disponibilidad
         Route::get('historial', [BarberController::class, 'historial'])->name('barbero.historial');
-        Route::put('/reservas/{reserva}/completar', [BarberController::class, 'marcarCompletada'])->name('reservas.completar');
+        Route::post('/agenda/{reserva}/complete', [BarberController::class, 'marcarCompletada'])->name('barbero.agenda.complete');
         Route::get('disponibilidad', [BarberController::class, 'disponibilidad'])->name('barbero.disponibilidad');
         Route::post('disponibilidad', [BarberController::class, 'storeDisponibilidad'])->name('barbero.disponibilidad.store');
         Route::delete('disponibilidad/{ausencia}', [BarberController::class, 'destroyDisponibilidad'])->name('barbero.disponibilidad.destroy');

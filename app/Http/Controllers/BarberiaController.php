@@ -43,7 +43,7 @@ class BarberiaController extends Controller
         ]);
     }
 
-    // Los otros métodos (reservacion, programacion) los crearemos después...
+
 
     public function reservacion(Request $request)
     {
@@ -100,7 +100,7 @@ class BarberiaController extends Controller
         $duracionServicio = $servicio->duracion_minutos;
 
         // 1. Definir Horario de Apertura y Cierre de la Barbería
-        // NOTA: En un sistema real, esto vendría de una tabla de 'Horarios'
+
         $horaApertura = Carbon::createFromTime(9, 0, 0); // 09:00 AM
         $horaCierre = Carbon::createFromTime(18, 0, 0); // 06:00 PM
 
@@ -116,14 +116,14 @@ class BarberiaController extends Controller
             $reservacionesExistentesQuery->where('barbero_id', $barberoId);
         } else {
             // Si el cliente eligió 'Cualquier Barbero', necesitamos saber qué barberos están trabajando.
-            // Para simplificar, asumiremos que todos los 'barberos' están trabajando y los uniremos en el siguiente paso.
+
             $barberoIds = User::role('barbero')->pluck('id')->toArray();
             $reservacionesExistentesQuery->whereIn('barbero_id', $barberoIds);
         }
 
         // Cargar las reservaciones con la duración del servicio asociado
         $reservacionesExistentes = $reservacionesExistentesQuery->get()->map(function ($reserva) {
-            // El modelo Reservacion DEBERÍA tener fecha_fin, pero si no, la calculamos:
+
             $fin = $reserva->fecha_fin
                 ? Carbon::parse($reserva->fecha_fin)
                 : Carbon::parse($reserva->fecha_inicio)->addMinutes($reserva->servicio->duracion_minutos);
